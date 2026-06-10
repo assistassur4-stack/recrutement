@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -624,18 +623,30 @@
   <!-- ÉTAPE 3 : DÉPÔT CV -->
   <div class="card" id="step-3">
     <div class="card-title">Déposez votre CV</div>
-    <div class="card-sub">Formats acceptés : PDF, Word (.doc, .docx). Taille max : 5 Mo.</div>
+    <div class="card-sub">Déposez votre CV directement <strong>ou</strong> partagez un lien Google Drive.</div>
 
+    <!-- OPTION 1 : Upload direct -->
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('cv-input').click()"
          ondragover="event.preventDefault(); this.classList.add('drag')"
          ondragleave="this.classList.remove('drag')"
          ondrop="handleDrop(event)">
       <div class="upload-icon">📄</div>
-      <div class="upload-label">Cliquez ici pour choisir votre CV</div>
-      <div class="upload-sub">ou glissez-déposez votre fichier</div>
+      <div class="upload-label">Option 1 — Cliquez pour choisir votre CV</div>
+      <div class="upload-sub">PDF ou Word (.doc, .docx) — max 5 Mo</div>
       <div id="file-name"></div>
     </div>
     <input type="file" id="cv-input" accept=".pdf,.doc,.docx" onchange="handleFile(this.files[0])" />
+
+    <div style="text-align:center; margin: 12px 0; color: var(--muted); font-weight:600; font-size:13px;">— OU —</div>
+
+    <!-- OPTION 2 : Lien Google Drive -->
+    <div class="form-group">
+      <label>Option 2 — Lien vers votre CV (Google Drive, OneDrive...)</label>
+      <input type="url" id="field-cv-link" placeholder="https://drive.google.com/..." />
+      <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+        📌 Sur Google Drive : ouvrez votre CV → cliquez "Partager" → "Tout le monde avec le lien" → copiez le lien
+      </div>
+    </div>
 
     <div class="info-box">
       <h3>📬 Ce que vous recevrez après soumission</h3>
@@ -821,7 +832,13 @@
     formData.append('Niveau études', niveau || 'Non renseigné');
     formData.append('Disponibilité', dispo || 'Non renseignée');
     formData.append('Message', msg || 'Aucun');
-    formData.append('cv', selectedFile, selectedFile.name);
+    if (selectedFile) {
+      formData.append('cv', selectedFile, selectedFile.name);
+    }
+    const cvLinkVal = document.getElementById('field-cv-link').value.trim();
+    if (cvLinkVal) {
+      formData.append('Lien CV', cvLinkVal);
+    }
 
     try {
       const res = await fetch('https://formsubmit.co/ajax/k.bouchair@ecg-pereire-assurances.com', {
