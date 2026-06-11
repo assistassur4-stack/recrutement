@@ -793,8 +793,9 @@
 
   // ─── SOUMISSION ───
   async function submitForm() {
-    if (!selectedFile) {
-      alert('Veuillez déposer votre CV avant d\'envoyer votre candidature.');
+    const cvLinkVal = document.getElementById('field-cv-link') ? document.getElementById('field-cv-link').value.trim() : '';
+    if (!selectedFile && !cvLinkVal) {
+      alert('Veuillez déposer votre CV ou coller un lien Google Drive.');
       return;
     }
 
@@ -804,7 +805,6 @@
     spinner.style.display = 'inline-block';
     btn.lastChild.textContent = ' Envoi en cours...';
 
-    // ─── Construction du corps du mail ───
     const prenom  = document.getElementById('field-prenom').value.trim();
     const nom     = document.getElementById('field-nom').value.trim();
     const tel     = document.getElementById('field-tel').value.trim();
@@ -817,50 +817,38 @@
                     ? 'Autre : ' + document.getElementById('field-autre-poste').value.trim()
                     : selectedPoste;
 
-    // Utilisation de FormSubmit.co (service gratuit, aucune inscription requise)
     const formData = new FormData();
-    formData.append('_to', 'k.bouchair@ecg-pereire-assurances.com');
-    formData.append('_subject', '🆕 Nouvelle candidature – ' + poste + ' – ' + prenom + ' ' + nom);
-    formData.append('_template', 'table');
-    formData.append('_captcha', 'false');
+    formData.append('access_key', '325ab709-1deb-48a5-8a00-f853d0539aaa');
+    formData.append('subject', '🆕 Nouvelle candidature – ' + poste + ' – ' + prenom + ' ' + nom);
+    formData.append('from_name', 'Site Recrutement Assist Assur');
     formData.append('Poste visé', poste);
     formData.append('Prénom', prenom);
     formData.append('Nom', nom);
     formData.append('Téléphone', tel);
-    formData.append('Email', email || 'Non renseigné');
+    formData.append('Email candidat', email || 'Non renseigné');
     formData.append('Commune', commune);
     formData.append('Niveau études', niveau || 'Non renseigné');
     formData.append('Disponibilité', dispo || 'Non renseignée');
     formData.append('Message', msg || 'Aucun');
-    if (selectedFile) {
-      formData.append('cv', selectedFile, selectedFile.name);
-    }
-    const cvLinkVal = document.getElementById('field-cv-link').value.trim();
-    if (cvLinkVal) {
-      formData.append('Lien CV', cvLinkVal);
-    }
+    formData.append('Lien CV', cvLinkVal || 'Non fourni');
 
     try {
-      const res = await fetch('https://formsubmit.co/ajax/k.bouchair@ecg-pereire-assurances.com', {
+      const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' }
+        body: formData
       });
-
       const data = await res.json();
-
-      if (data.success === 'true' || data.success === true) {
-        // Succès
+      if (data.success) {
         document.getElementById('steps-indicator').style.display = 'none';
         document.querySelectorAll('.card').forEach(c => c.style.display = 'none');
         document.getElementById('success-screen').classList.add('active');
         document.getElementById('success-screen').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        throw new Error('Réponse invalide');
+        throw new Error('Erreur envoi');
       }
     } catch(err) {
-      alert('Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou contacter directement k.bouchair@ecg-pereire-assurances.com');
+      alert('Une erreur est survenue. Veuillez réessayer ou contacter directement k.bouchair@ecg-pereire-assurances.com');
       btn.classList.remove('loading');
       spinner.style.display = 'none';
       btn.lastChild.textContent = ' Envoyer ma candidature ✉️';
